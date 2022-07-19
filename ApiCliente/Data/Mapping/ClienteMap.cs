@@ -19,7 +19,7 @@ namespace ApiCliente.Data.Mapping
                 .HasColumnType("int")
                 .HasMaxLength(1);
 
-            builder.HasOne(x =>x.PessoaFisica)
+            builder.HasOne(x => x.PessoaFisica)
                 .WithOne(x => x.Cliente)
                 .HasConstraintName("FK_PessoaFisica_Cliente")
                 .OnDelete(DeleteBehavior.Cascade);
