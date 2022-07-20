@@ -1,6 +1,8 @@
 ﻿using ApiCliente.Data;
 using ApiCliente.Enums;
+using ApiCliente.Extensions;
 using ApiCliente.Models;
+using ApiCliente.ViewModels;
 using ApiCliente.ViewModels.Cliente;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +24,21 @@ namespace ApiCliente.Controllers
         [HttpGet("v1/clientes")]
         public async Task<IActionResult> GetAsync()
         {
-            return Ok(await context.Clientes.AsNoTracking().ToListAsync());
+            try
+            {
+                var clientes = await context.Clientes
+                    .AsNoTracking()
+                    .Include(x => x.PessoaFisica)
+                    .Include(x => x.PessoaJuridica)
+                    .Include(x => x.Endereco)
+                    .Include(x => x.Contatos)
+                    .ToListAsync();
+                return Ok(new ResultViewModel<List<Cliente>>(clientes));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new ResultViewModel<List<Cliente>>("Erro Interno, código: EX-CL-G01"));
+            }
         }
 
 
@@ -31,24 +47,33 @@ namespace ApiCliente.Controllers
         {
             try
             {
-                var cliente = await context.Clientes.FirstOrDefaultAsync(x => x.Id == id);
+                var cliente = await context.Clientes
+                    .Include(x => x.PessoaFisica)
+                    .Include(x => x.PessoaJuridica)
+                    .Include(x => x.Endereco)
+                    .Include(x => x.Contatos)
+                    .FirstOrDefaultAsync(x => x.Id == id);
+
                 if(cliente is null)
-                    return NotFound();
-                return Ok(cliente);
+                    return NotFound(new ResultViewModel<Cliente>("Nem um Cliente foi encontrado!"));
+                return Ok(new ResultViewModel<Cliente>(cliente));
             }
             catch (DbUpdateException e)
             {
-                return StatusCode(500, "Erro Interno, código: EXCL01");
+                return StatusCode(500, new ResultViewModel<List<Cliente>>("Erro Interno, código: EX-CL-GB01"));
             }
             catch (Exception e)
             {
-                return StatusCode(500, "Erro Interno, código: EXCL02");
+                return StatusCode(500, new ResultViewModel<List<Cliente>>("Erro Interno, código: EX-CL-GB02"));
             }
         }
 
         [HttpPost("v1/clientes")]
         public async Task<IActionResult> PostAsync([FromBody] CreateOrEditClienteViewModel clienteViewModel)
         {
+            if(!ModelState.IsValid)
+                return BadRequest(new ResultViewModel<Cliente>(ModelState.GetErros()));
+
             try
             {
                 var cliente = new Cliente();
@@ -101,15 +126,15 @@ namespace ApiCliente.Controllers
                 await context.Clientes.AddAsync(cliente);
                 await context.SaveChangesAsync();
 
-                return Created($"v1/clientes/{cliente.Id}", cliente);
+                return Created($"v1/clientes/{cliente.Id}", new ResultViewModel<Cliente>(cliente));
             }
             catch (DbUpdateException e)
             {
-                return StatusCode(500, "Erro Interno, código: EXCL03");
+                return StatusCode(500, new ResultViewModel<List<Cliente>>("Erro Interno, código: EX-CL-PO01"));
             }
             catch (Exception e)
             {
-                return StatusCode(500, "Erro Interno, código: EXCL04");
+                return StatusCode(500, new ResultViewModel<List<Cliente>>("Erro Interno, código: EX-CL-PO02"));
             }
 
         }
