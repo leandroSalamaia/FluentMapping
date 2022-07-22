@@ -1,4 +1,5 @@
-﻿using ApiCliente.Data;
+﻿using ApiCliente.Attributes;
+using ApiCliente.Data;
 using ApiCliente.Enums;
 using ApiCliente.Extensions;
 using ApiCliente.Models;
@@ -22,6 +23,7 @@ namespace ApiCliente.Controllers
         }
 
         [HttpGet("v1/clientes")]
+        [ApiKey]
         public async Task<IActionResult> GetAsync()
         {
             try
@@ -43,6 +45,7 @@ namespace ApiCliente.Controllers
 
 
         [HttpGet("v1/clientes/{id:Guid}")]
+        [ApiKey]
         public async Task<IActionResult> GetByIdAsync([FromRoute] Guid id)
         {
             try
@@ -108,7 +111,7 @@ namespace ApiCliente.Controllers
                     numero = clienteViewModel.Endereco.numero,
                     Complemento = clienteViewModel.Endereco.Complemento,
                     Estado = clienteViewModel.Endereco.Estado,
-                    Bairo = clienteViewModel.Endereco.Bairo
+                    Bairro = clienteViewModel.Endereco.Bairro
                 };
 
                 cliente.Endereco = endereco;
@@ -169,22 +172,10 @@ namespace ApiCliente.Controllers
                 endereco.numero = clienteViewModel.Endereco.numero;
                 endereco.Complemento = clienteViewModel.Endereco.Complemento;
                 endereco.Estado = clienteViewModel.Endereco.Estado;
-                endereco.Bairo = clienteViewModel.Endereco.Bairo;
+                endereco.Bairro = clienteViewModel.Endereco.Bairro;
                 endereco.Cep = clienteViewModel.Endereco.Cep;
 
                 cliente.Endereco = endereco;
-
-                var contatos = await context.Contatos.Where(x => x.ClienteId == id).ToListAsync();
-                foreach (var item in clienteViewModel.Contatos)
-                {
-                    var contato = new Contato()
-                    {
-                        Email = item.Email,
-                        Telefone = item.Telefone
-                    };
-                    contatos.Add(contato);
-                }
-                cliente.Contatos = contatos;
 
                 context.Clientes.Update(cliente);
                 await context.SaveChangesAsync();               

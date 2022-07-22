@@ -25,7 +25,7 @@ namespace ApiCliente.Data.Mapping
                 .HasColumnType("NVARCHAR")
                 .HasMaxLength(15);
 
-            builder.Property(x => x.Bairo)
+            builder.Property(x => x.Bairro)
                 .IsRequired()
                 .HasColumnType("NVARCHAR")
                 .HasMaxLength(60);
